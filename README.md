@@ -56,6 +56,10 @@
         .expanded .expand-icon {
             transform: rotate(180deg);
         }
+        /* Ajuste de fonte extra pequeno para telas muito pequenas */
+        .text-2xs {
+            font-size: 0.65rem; /* Menor que text-xs (0.75rem) */
+        }
         @keyframes pulse-series {
             0% { transform: scale(0.9); }
             50% { transform: scale(1.1); }
@@ -70,8 +74,8 @@
         <p class="text-gray-600 mb-6">Foco: Glúteo e Queima de Gordura. Diástase-Safe.</p>
 
         <!-- INDICADOR DE TESTE DE JAVASCRIPT: Se você vir essa barra VERMELHA, o código não está rodando! -->
-        <div id="js-test" class="text-center text-xl font-bold p-4 rounded-lg bg-red-500 text-white mb-6 shadow-md">
-            TESTE DE JAVASCRIPT: FALHOU!
+        <div id="js-test" class="text-center text-xl font-bold p-4 rounded-lg bg-success text-white mb-6 shadow-md">
+            TESTE DE JAVASCRIPT: SUCESSO! Aplicativo carregado.
         </div>
 
         <div id="treino-container" class="space-y-4">
@@ -291,11 +295,11 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Exercício</th>
-                                <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Séries/Reps</th>
-                                <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Intervalo</th>
-                                <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Séries Feitas</th>
-                                <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Demo</th>
+                                <th class="px-1 py-3 text-left text-2xs sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Exercício / Notas</th>
+                                <th class="px-1 py-3 text-center text-2xs sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Séries/Reps</th>
+                                <th class="px-1 py-3 text-center text-2xs sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Intervalo</th>
+                                <th class="px-1 py-3 text-center text-2xs sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Feitas</th>
+                                <th class="px-1 py-3 text-center text-2xs sm:text-xs font-medium text-gray-500 uppercase tracking-wider">Demo</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
@@ -305,26 +309,26 @@
                 const numSeries = ex.series_reps.includes('x') ? parseInt(ex.series_reps.split('x')[0]) : 0;
                 let seriesButtons = '';
                 for (let i = 1; i <= numSeries; i++) {
-                    seriesButtons += `<button class="series-btn w-6 h-6 rounded-full text-xs font-bold" onclick="toggleSeries(this)">S${i}</button>`;
+                    seriesButtons += `<button class="series-btn w-5 h-5 sm:w-6 sm:h-6 rounded-full text-2xs sm:text-xs font-bold" onclick="toggleSeries(this)">S${i}</button>`;
                 }
 
                 const hasInterval = ex.intervalo && ex.intervalo !== "-" && parseInterval(ex.intervalo) > 0;
                 
                 html += `
                     <tr class="hover:bg-gray-50 transition duration-150">
-                        <td class="p-3 whitespace-nowrap">
+                        <td class="px-1 py-2 whitespace-nowrap">
                             <div class="text-sm font-semibold text-gray-900">${ex.nome}</div>
-                            <div class="text-xs text-gray-500 mt-0.5">${ex.notas}</div>
+                            <div class="text-2xs sm:text-xs text-gray-500 mt-0.5">${ex.notas}</div>
                         </td>
-                        <td class="p-3 whitespace-nowrap text-center text-sm text-gray-700">${ex.series_reps}</td>
-                        <td class="p-3 whitespace-nowrap text-center text-sm">
-                            <span class="font-medium text-gray-700">${ex.intervalo}</span>
-                            ${hasInterval ? `<button onclick="startTimer('${ex.intervalo}')" class="ml-2 px-2 py-1 bg-primary text-white text-xs font-semibold rounded-full hover:bg-indigo-700 transition duration-150">Iniciar Descanso</button>` : ''}
+                        <td class="px-1 py-2 whitespace-nowrap text-center text-xs text-gray-700">${ex.series_reps}</td>
+                        <td class="px-1 py-2 whitespace-nowrap text-center text-sm">
+                            <span class="font-medium text-xs sm:text-sm text-gray-700">${ex.intervalo}</span>
+                            ${hasInterval ? `<button onclick="startTimer('${ex.intervalo}')" class="mt-1 px-1 py-0.5 sm:px-2 sm:py-1 bg-primary text-white text-2xs sm:text-xs font-semibold rounded-full hover:bg-indigo-700 transition duration-150">Descansar</button>` : ''}
                         </td>
-                        <td class="p-3 whitespace-nowrap text-center space-x-1">
+                        <td class="px-1 py-2 whitespace-nowrap text-center space-x-0.5">
                             ${seriesButtons}
                         </td>
-                        <td class="p-3 whitespace-nowrap text-center">
+                        <td class="px-1 py-2 whitespace-nowrap text-center">
                             ${ex.demoUrl ? `<a href="${ex.demoUrl}" target="_blank" class="px-2 py-1 text-xs font-bold rounded-full ${ex.isCardio ? 'bg-orange-500 hover:bg-orange-600' : 'bg-secondary hover:bg-blue-700'} text-white transition duration-150">Vídeo</a>` : ''}
                         </td>
                     </tr>

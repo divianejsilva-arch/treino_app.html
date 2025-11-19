@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Treino Diário</title>
+    <!-- Carrega Tailwind CSS para estilização moderna e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #58509c; /* Roxo */
+            --secondary: #3b82f6; /* Azul */
+            --background: #f4f4f5; /* Cinza claro */
+            --card-bg: #ffffff;
+            --success: #10b981; /* Verde */
+            --warning: #f59e0b; /* Amarelo */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            padding-bottom: 70px; /* Espaço para o timer fixo */
+        }
+        .container {
+            max-width: 768px;
+        }
+        .card {
+            background-color: var(--card-bg);
+            border-left: 5px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+        .series-btn {
+            background-color: #e5e7eb;
+            color: #4b5563;
+            transition: all 0.2s;
+        }
+        .series-btn.done {
+            background-color: var(--success);
+            color: white;
+            animation: pulse-series 0.3s;
+        }
+        .timer-bar {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+        .timer-progress {
+            height: 4px;
+            background-color: var(--success);
+            transition: width 0.1s linear;
+        }
+        .expand-icon {
+            transition: transform 0.3s;
+        }
+        .expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+        @keyframes pulse-series {
+            0% { transform: scale(0.9); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-6">
+
+    <div class="container mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Meu Treino Diário</h1>
+        <p class="text-gray-600 mb-6">Foco: Glúteo e Queima de Gordura. Diástase-Safe.</p>
+
+        <!-- INDICADOR DE TESTE DE JAVASCRIPT: Se você vir essa barra VERMELHA, o código não está rodando! -->
+        <div id="js-test" class="text-center text-xl font-bold p-4 rounded-lg bg-red-500 text-white mb-6 shadow-md">
+            TESTE DE JAVASCRIPT: FALHOU!
+        </div>
+
+        <div id="treino-container" class="space-y-4">
+            <!-- Os cards dos dias de treino serão inseridos aqui pelo JavaScript -->
+        </div>
+
+    </div>
+
+    <!-- Barra de Cronômetro Fixa -->
+    <div id="timer-bar" class="fixed bottom-0 left-0 right-0 h-16 flex items-center justify-between px-4 sm:px-6 shadow-xl timer-bar hidden">
+        <div class="flex items-center space-x-3">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span class="text-lg font-bold">DESCANSO:</span>
+            <span id="timer-display" class="text-xl font-extrabold text-white">00:00</span>
+        </div>
+        <button onclick="stopTimer()" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-lg shadow-md transition duration-200">
+            Parar
+        </button>
+        <div id="timer-progress" class="absolute bottom-0 left-0 right-0 timer-progress"></div>
+    </div>
+
+    <script>
+        // URL PLACEHOLDER: Use esta URL de imagem placeholder, ou substitua pela URL do seu vídeo/foto.
+        const PLACEHOLDER_DEMO_URL = "https://placehold.co/150x100/363062/ffffff?text=Demonstração+do+Exercício";
+
+        const treinos = [
+            {
+                dia: "Segunda-feira",
+                foco: "Membros Inferiores (Glúteo & Quadríceps)",
+                observacao: "Foco em Carga (Força) e Glúteo Máximo. Mantenha o Core ativado em todos os exercícios.",
+                exercicios: [
+                    { nome: "Agachamento Livre/Smith", series_reps: "4 x 8-12", intervalo: "60-90s", foco: "Glúteo, Quadríceps", notas: "Use carga desafiadora. Contraia o abdômen.", demoUrl: "https://youtube.com/shorts/iGLzCCZr_Xw?si=hui4hN2gXteHqyGP" },
+                    { nome: "Elevação Pélvica (Hip Thrust)", series_reps: "4 x 10-15", intervalo: "60-90s", foco: "Glúteo Máximo", notas: "Pausa de 1s no pico para contrair o glúteo.", demoUrl: PLACEHOLDER_DEMO_URL },
+                    { nome: "Cadeira Extensora", series_reps: "3 x 12-15", intervalo: "45-60s", foco: "Quadríceps", notas: "Drop-set na última série (reduza o peso e faça até a falha).", demoUrl: "https://youtu.be/y7GhuVphn4s?si=MrBkm0kVuqKvXSCq" },
+                    { nome: "Cadeira Abdutora", series_reps: "3 x 15-20", intervalo: "45-60s", foco: "Glúteo Médio/Mínimo", notas: "Incline o tronco levemente para frente para focar no glúteo.", demoUrl: PLACEHOLDER_DEMO_URL },
+                    { nome: "Cadeira Flexora", series_reps: "3 x 12-15", intervalo: "45-60s", foco: "Posterior de Coxa", notas: "Foco na contração e descida lenta.", demoUrl: PLACEHOLDER_DEMO_URL },
+                ]
+            },
+            {
+                dia: "Terça-feira",
+                foco: "Membros Superiores (Peito, Ombro, Tríceps) + Cardio HIIT",
+                observacao: "Foco na alta intensidade para gasto calórico. Lembre-se de manter o Core estável na Prancha.",
+                exercicios: [
+                    { nome: "Supino c/ Halteres (Inclinado ou Reto)", series_reps: "3 x 10-12", intervalo: "60s", foco: "Peito", notas: "Movimento controlado.", demoUrl: PLACEHOLDER_DEMO_URL },
+                    { nome: "Desenvolvimento de Ombro (Máquina ou Halteres)", series_reps: "3 x 10-12", intervalo: "60s", foco: "Ombro", notas: "Não travar os cotovelos no topo.", demoUrl: PLACEHOLDER_DEMO_URL },
+                    { nome: "Elevação Lateral", series_reps: "3 x 12-15", intervalo: "45s", foco: "Ombro", notas: "Peso moderado, foque na forma, cotovelos levemente flexionados.", demoUrl: PLACEHOLDER_DEMO_URL },
+                    { nome: "Tríceps Pulley (ou Coice)", series_reps: "3 x 12-15", intervalo: "45s", foco: "Tríceps", notas: "Mantenha os cotovelos fixos.", demoUrl: PLACEHOLDER_DEMO_URL },
+                    { nome: "Prancha Ventral (Modificada)", series_reps: "3 x 30-60s", intervalo: "30s", foco: "Core (Estabilidade)", notas: "Opção: Apoie os joelhos no chão. Evite 'doming' (barriga estufada).", demoUrl: PLACEHOLDER_DEMO_URL },
+                    { nome: "Cardio HIIT (Esteira/Elíptico)", series_reps: "15 min", intervalo: "-", foco: "Perda de Gordura", notas: "10 ciclos de 30s tiro (máx. esforço) / 60s recuperação.", demoUrl: PLACEHOLDER_DEMO_URL, isCardio: true },
+                ]
+            },
+            {
+                dia: "Quarta-feira",
+                foco: "Descanso Ativo / Core Terapêutico",
+                observacao: "Dia de recuperação. Faça uma caminhada leve ou apenas o Core Diástase-Safe (Vácuo Abdominal) para proteger e fortalecer o Core profundo.",
+                exercicios: [
+                    { nome: "Vácuo Abdominal (Hipopressivo)", series_reps: "3 x 3-5 repetições longas", intervalo: "60s", foco: "Core Profundo (Diástase)", notas: "Puxe o umbigo para dentro e para cima, segure e solte devagar. Faça deitada ou em 4 apoios.", demoUrl: PLACEHOLDER_DEMO_URL },
+                    { nome: "Caminhada Leve / Alongamento", series_reps: "30 min", intervalo: "-", foco: "Recuperação", notas: "Opcional.", demoUrl: PLACEHOLDER_DEMO_URL, isCardio: true },
+                ]
+            },
+            {
+                dia: "Quinta-feira",
+                foco: "Membros Inferiores (Glúteo & Posterior de Coxa)",
+                observacao: "Foco no posterior da coxa e em exercícios de isolamento para 'dar forma' ao glúteo.",
+                exercicios: [
+                    { nome: "Stiff com Halteres ou Barra", series_reps: "4 x 10-12", intervalo: "60-90s", foco: "Posterior de Coxa, Glúteo", notas: "Mantenha as costas retas e o core ativado. Desça até sentir o alongamento.", demoUrl: PLACEHOLDER_DEMO_URL },
+                    { nome: "Afundo/Passada (com Halteres)", series_reps: "3 x 10-12 (cada)", intervalo: "60-90s", foco: "Glúteo, Quadríceps", notas: "Amplitude segura, concentre a força no calcanhar da frente.", demoUrl: PLACEHOLDER_DEMO_URL },
+                    { nome: "Glúteo 4 Apoios na Máquina/Cabo", series_reps: "3 x 12-15 (cada)", intervalo: "45-60s", foco: "Glúteo (Isolamento)", notas: "Contraia o glúteo antes de começar a mover a perna.", demoUrl: PLACEHOLDER_DEMO_URL },
+                    { nome: "Leg Press Horizontal", series_reps: "3 x 15-20", intervalo: "45-60s", foco: "Glúteo, Posterior", notas: "Pés mais altos e afastados na plataforma.", demoUrl: PLACEHOLDER_DEMO_URL },
+                    { nome: "Panturrilha em Pé/Máquina", series_reps: "3 x 15-20", intervalo: "30s", foco: "Panturrilha", notas: "Pausa no topo e alongue embaixo.", demoUrl: PLACEHOLDER_DEMO_URL },
+                ]
+            },
+            {
+                dia: "Sexta-feira",
+                foco: "Membros Superiores (Costas, Bíceps) + Core Terapêutico",
+                observacao: "Foco em fortalecer os músculos das costas para postura e finalizar a semana com segurança no Core.",
+                exercicios: [
+                    { nome: "Puxada Alta (Pegada Pronada ou Neutra)", series_reps: "4 x 8-12", intervalo: "60s", foco: "Costas", notas: "Desça o peso até sentir as costas contraírem, não o bíceps.", demoUrl: PLACEHOLDER_DEMO_URL },
+                    { nome: "Remada Baixa (Pegada Fechada/Neutra)", series_reps: "3 x 10-12", intervalo: "60s", foco: "Costas", notas: "Puxe em direção ao seu abdômen.", demoUrl: PLACEHOLDER_DEMO_URL },
+                    { nome: "Rosca Direta (ou c/ Halteres)", series_reps: "3 x 12-15", intervalo: "45s", foco: "Bíceps", notas: "Evite balançar o corpo.", demoUrl: PLACEHOLDER_DEMO_URL },
+                    { nome: "Rosca Martelo", series_reps: "3 x 12-15", intervalo: "45s", foco: "Bíceps/Antebraço", notas: "Use pegada neutra (palmas voltadas uma para a outra).", demoUrl: PLACEHOLDER_DEMO_URL },
+                    { nome: "Bird-Dog (4 Apoios)", series_reps: "3 x 10-12 (cada lado)", intervalo: "30s", foco: "Core (Estabilidade)", notas: "Movimento lento e controlado, sem deixar o quadril girar. Diástase-Safe.", demoUrl: PLACEHOLDER_DEMO_URL },
+                    { nome: "Prancha Lateral (Side Plank)", series_reps: "3 x 30s (cada)", intervalo: "60s", foco: "Core (Estabilidade)", notas: "Apoie no antebraço. Mantenha o corpo reto como uma tábua.", demoUrl: PLACEHOLDER_DEMO_URL },
+                ]
+            },
+            {
+                dia: "Fim de Semana (Sáb/Dom)",
+                foco: "Descanso Total",
+                observacao: "Priorize a recuperação muscular e nervosa. O crescimento muscular ocorre no descanso. Foco na alimentação e hidratação.",
+                exercicios: []
+            }
+        ];
+
+        // Variáveis de controle do Timer
+        let timerInterval;
+        let totalSeconds;
+        let elapsedSeconds = 0;
+        let audioContext;
+        let oscillator;
+        const timerBar = document.getElementById('timer-bar');
+        const timerDisplay = document.getElementById('timer-display');
+        const timerProgress = document.getElementById('timer-progress');
+        const jsTestDiv = document.getElementById('js-test');
+        let isAudioReady = false;
+
+        // Função para inicializar o contexto de áudio
+        function initAudio() {
+            if (!isAudioReady) {
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    oscillator = audioContext.createOscillator();
+                    oscillator.type = 'sine'; // Som de 'beep'
+                    oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // Frequência A4
+                    oscillator.start();
+                    oscillator.stop(0); // Para imediatamente, mas o inicializa
+                    isAudioReady = true;
+                } catch (e) {
+                    console.error("Audio initialization failed:", e);
+                }
+            }
+        }
+
+        // Função para emitir um 'beep' de alarme
+        function playAlarm() {
+            if (isAudioReady) {
+                const now = audioContext.currentTime;
+                // Cria um novo oscilador para o som (garante que ele toca)
+                const alarmOscillator = audioContext.createOscillator();
+                alarmOscillator.type = 'sine';
+                alarmOscillator.frequency.setValueAtTime(440, now);
+                alarmOscillator.connect(audioContext.destination);
+                alarmOscillator.start(now);
+                alarmOscillator.stop(now + 0.5); // Toca por 0.5 segundos
+
+                // Vibrar no celular (se suportado)
+                if (navigator.vibrate) {
+                    navigator.vibrate([200, 100, 200]);
+                }
+            }
+        }
+
+        // Event listener para inicializar o áudio ao primeiro toque
+        // Isso é CRUCIAL no iOS/Safari para contornar o bloqueio de áudio.
+        document.addEventListener('click', initAudio, { once: true });
+
+
+        // Converte o tempo do intervalo (ex: "60-90s") para segundos (o maior valor)
+        function parseInterval(intervalStr) {
+            const matches = intervalStr.match(/(\d+)/g);
+            if (!matches) return 0;
+
+            const seconds = matches.map(Number);
+            return Math.max(...seconds);
+        }
+
+        // Inicia o cronômetro de descanso
+        function startTimer(intervalStr) {
+            stopTimer(); // Para qualquer timer anterior
+
+            const seconds = parseInterval(intervalStr);
+            if (seconds === 0) return;
+
+            totalSeconds = seconds;
+            elapsedSeconds = 0;
+            timerBar.classList.remove('hidden');
+
+            const updateTimer = () => {
+                const remaining = totalSeconds - elapsedSeconds;
+                const minutes = Math.floor(remaining / 60);
+                const secs = remaining % 60;
+                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+                const progressWidth = (elapsedSeconds / totalSeconds) * 100;
+                timerProgress.style.width = `${progressWidth}%`;
+
+                if (elapsedSeconds >= totalSeconds) {
+                    stopTimer(true);
+                    playAlarm();
+                    timerBar.style.backgroundColor = 'var(--warning)';
+                    timerDisplay.textContent = 'FIM!';
+                    setTimeout(() => {
+                        timerBar.classList.add('hidden');
+                        timerBar.style.backgroundColor = 'var(--primary)';
+                    }, 3000);
+                    return;
+                }
+                elapsedSeconds++;
+            };
+
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        // Para o cronômetro
+        function stopTimer(finished = false) {
+            clearInterval(timerInterval);
+            if (!finished) {
+                timerBar.classList.add('hidden');
+            }
+            timerProgress.style.width = '0%';
+            timerBar.style.backgroundColor = 'var(--primary)';
+        }
+
+        // Marca/desmarca uma série como feita
+        function toggleSeries(button) {
+            button.classList.toggle('done');
+        }
+
+        // Gera o HTML da tabela de exercícios de um dia
+        function renderExercicios(exercicios) {
+            if (exercicios.length === 0) {
+                return '<p class="text-gray-500 p-4">Aproveite o seu descanso!</p>';
+            }
+
+            let html = `
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Exercício</th>
+                                <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Séries/Reps</th>
+                                <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Intervalo</th>
+                                <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Séries Feitas</th>
+                                <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Demo</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+            `;
+
+            exercicios.forEach((ex, index) => {
+                const numSeries = ex.series_reps.includes('x') ? parseInt(ex.series_reps.split('x')[0]) : 0;
+                let seriesButtons = '';
+                for (let i = 1; i <= numSeries; i++) {
+                    seriesButtons += `<button class="series-btn w-6 h-6 rounded-full text-xs font-bold" onclick="toggleSeries(this)">S${i}</button>`;
+                }
+
+                const hasInterval = ex.intervalo && ex.intervalo !== "-" && parseInterval(ex.intervalo) > 0;
+                
+                html += `
+                    <tr class="hover:bg-gray-50 transition duration-150">
+                        <td class="p-3 whitespace-nowrap">
+                            <div class="text-sm font-semibold text-gray-900">${ex.nome}</div>
+                            <div class="text-xs text-gray-500 mt-0.5">${ex.notas}</div>
+                        </td>
+                        <td class="p-3 whitespace-nowrap text-center text-sm text-gray-700">${ex.series_reps}</td>
+                        <td class="p-3 whitespace-nowrap text-center text-sm">
+                            <span class="font-medium text-gray-700">${ex.intervalo}</span>
+                            ${hasInterval ? `<button onclick="startTimer('${ex.intervalo}')" class="ml-2 px-2 py-1 bg-primary text-white text-xs font-semibold rounded-full hover:bg-indigo-700 transition duration-150">Iniciar Descanso</button>` : ''}
+                        </td>
+                        <td class="p-3 whitespace-nowrap text-center space-x-1">
+                            ${seriesButtons}
+                        </td>
+                        <td class="p-3 whitespace-nowrap text-center">
+                            ${ex.demoUrl ? `<a href="${ex.demoUrl}" target="_blank" class="px-2 py-1 text-xs font-bold rounded-full ${ex.isCardio ? 'bg-orange-500 hover:bg-orange-600' : 'bg-secondary hover:bg-blue-700'} text-white transition duration-150">Vídeo</a>` : ''}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table></div>`;
+            return html;
+        }
+
+        // Gera o HTML do card de um dia
+        function renderCard(treino) {
+            const card = document.createElement('div');
+            const isRestDay = treino.exercicios.length === 0 || treino.dia === "Quarta-feira" && treino.exercicios.every(ex => ex.nome.includes("Descanso"));
+
+            card.className = `card rounded-lg shadow-lg overflow-hidden ${isRestDay ? 'border-l-4 border-l-green-500' : 'border-l-4 border-l-primary'}`;
+            card.innerHTML = `
+                <div id="header-${treino.dia.replace(/\s/g, '-')}" class="p-4 cursor-pointer flex justify-between items-center ${isRestDay ? 'bg-green-50' : 'bg-indigo-50'} hover:bg-opacity-80" onclick="toggleDetails('${treino.dia.replace(/\s/g, '-')}')">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">${treino.dia}</h2>
+                        <p class="text-sm ${isRestDay ? 'text-green-700' : 'text-primary'} font-semibold">${treino.foco}</p>
+                    </div>
+                    <svg class="w-6 h-6 expand-icon text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div id="details-${treino.dia.replace(/\s/g, '-')}" class="details-content hidden">
+                    <div class="p-4 bg-gray-50 border-t border-gray-200">
+                        <p class="text-sm text-gray-600 font-medium">${treino.observacao}</p>
+                    </div>
+                    ${renderExercicios(treino.exercicios)}
+                </div>
+            `;
+            document.getElementById('treino-container').appendChild(card);
+        }
+
+        // Alterna a visibilidade dos detalhes do treino
+        function toggleDetails(dayId) {
+            const details = document.getElementById(`details-${dayId}`);
+            const header = document.getElementById(`header-${dayId}`).parentNode;
+
+            if (details.classList.contains('hidden')) {
+                details.classList.remove('hidden');
+                header.classList.add('expanded');
+            } else {
+                details.classList.add('hidden');
+                header.classList.remove('expanded');
+            }
+        }
+
+        // Renderiza todos os cards ao carregar a página
+        window.onload = function() {
+            // TESTE VISUAL: Se o JS estiver rodando, essa div será atualizada para VERDE
+            jsTestDiv.textContent = 'TESTE DE JAVASCRIPT: SUCESSO! Aplicativo carregado.';
+            jsTestDiv.classList.remove('bg-red-500');
+            jsTestDiv.classList.add('bg-success'); // Verde
+
+            treinos.forEach(renderCard);
+        };
+    </script>
+</body>
+</html>
